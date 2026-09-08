@@ -1,1 +1,1199 @@
-# 03
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>賃貸管理・異常発見ゲーム</title>
+
+<style>
+*{
+  box-sizing:border-box;
+}
+
+html,body{
+  margin:0;
+  padding:0;
+  background:#111;
+  color:#fff;
+  font-family:-apple-system,BlinkMacSystemFont,"Noto Sans JP",
+              "Yu Gothic",sans-serif;
+}
+
+body{
+  min-height:100vh;
+}
+
+#app{
+  width:min(1400px,100%);
+  margin:auto;
+  padding:12px;
+}
+
+header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  flex-wrap:wrap;
+  margin-bottom:10px;
+}
+
+.title{
+  font-size:clamp(20px,3vw,31px);
+  font-weight:900;
+}
+
+.stats{
+  display:flex;
+  gap:7px;
+  flex-wrap:wrap;
+}
+
+.badge{
+  background:#242424;
+  border:1px solid #444;
+  border-radius:999px;
+  padding:7px 12px;
+  font-weight:800;
+}
+
+#game{
+  position:relative;
+  overflow:hidden;
+  border-radius:14px;
+  background:#000;
+  box-shadow:0 10px 35px rgba(0,0,0,.5);
+  line-height:0;
+}
+
+#scene{
+  display:block;
+  width:100%;
+  height:auto;
+  user-select:none;
+  -webkit-user-drag:none;
+}
+
+#hotspots,
+#markers{
+  position:absolute;
+  inset:0;
+}
+
+.hotspot{
+  position:absolute;
+  transform:translate(-50%,-50%);
+  width:8%;
+  height:10%;
+  border:0;
+  outline:0;
+  background:transparent;
+  padding:0;
+  cursor:crosshair;
+  z-index:3;
+}
+
+.hotspot:focus,
+.hotspot:focus-visible{
+  outline:none;
+  box-shadow:none;
+}
+
+/* 正解した場所 */
+.marker{
+  position:absolute;
+  transform:translate(-50%,-50%);
+  width:5.2%;
+  aspect-ratio:1;
+  border:3px solid #24d36b;
+  border-radius:50%;
+  background:rgba(36,211,107,.10);
+  z-index:8;
+  pointer-events:none;
+  animation:pop .2s ease-out;
+}
+
+.marker::after{
+  content:"✓";
+  position:absolute;
+  inset:0;
+  display:grid;
+  place-items:center;
+  font-size:clamp(17px,2.2vw,29px);
+  font-weight:900;
+  text-shadow:0 1px 3px #000;
+}
+
+/* 間違えた場所 */
+.wrong{
+  position:absolute;
+  transform:translate(-50%,-50%);
+  z-index:9;
+  color:#ff4d4d;
+  font-size:clamp(38px,6vw,70px);
+  font-weight:900;
+  text-shadow:0 2px 5px #000;
+  pointer-events:none;
+  animation:wrong .48s ease-out forwards;
+}
+
+#message{
+  position:absolute;
+  left:50%;
+  top:7%;
+  transform:translateX(-50%);
+  z-index:12;
+
+  background:rgba(0,0,0,.82);
+  border:1px solid #555;
+  border-radius:999px;
+
+  padding:10px 20px;
+
+  font-weight:900;
+  font-size:clamp(15px,2vw,24px);
+
+  white-space:nowrap;
+  opacity:0;
+  pointer-events:none;
+}
+
+#message.show{
+  animation:message .8s ease;
+}
+
+#side{
+  margin-top:10px;
+  padding:12px;
+  background:#1b1b1b;
+  border:1px solid #333;
+  border-radius:14px;
+}
+
+#side h2{
+  font-size:17px;
+  margin:0 0 9px;
+}
+
+#items{
+  display:grid;
+  grid-template-columns:
+    repeat(auto-fit,minmax(210px,1fr));
+  gap:7px;
+}
+
+.item{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+
+  background:#252525;
+  border-radius:9px;
+  padding:8px 10px;
+
+  color:#aaa;
+  font-size:14px;
+}
+
+.item.found{
+  background:#17351f;
+  color:#fff;
+}
+
+.item .pts{
+  font-weight:900;
+  white-space:nowrap;
+}
+
+.item .check{
+  opacity:0;
+}
+
+.item.found .check{
+  opacity:1;
+  color:#36e37b;
+}
+
+#start,
+#result{
+  position:fixed;
+  inset:0;
+  z-index:50;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  background:rgba(0,0,0,.93);
+  padding:18px;
+}
+
+.panel{
+  width:min(640px,100%);
+  background:#202020;
+  border:1px solid #444;
+  border-radius:20px;
+  padding:28px;
+  text-align:center;
+  box-shadow:0 20px 70px #000;
+}
+
+.panel h1{
+  font-size:clamp(29px,7vw,50px);
+  margin:0 0 8px;
+}
+
+.panel p{
+  line-height:1.8;
+  color:#ccc;
+}
+
+.panel strong{
+  color:#fff;
+}
+
+.main{
+  border:0;
+  border-radius:12px;
+  background:#fff;
+  color:#111;
+
+  padding:14px 25px;
+
+  font-size:18px;
+  font-weight:900;
+
+  cursor:pointer;
+}
+
+.stageinfo{
+  font-size:14px;
+  color:#aaa;
+  margin-top:10px;
+}
+
+.scorebig{
+  font-size:clamp(45px,10vw,70px);
+  font-weight:900;
+  margin:8px;
+}
+
+#result{
+  display:none;
+}
+
+@keyframes pop{
+  from{
+    transform:translate(-50%,-50%) scale(.55);
+    opacity:.15;
+  }
+
+  to{
+    transform:translate(-50%,-50%) scale(1);
+    opacity:1;
+  }
+}
+
+@keyframes wrong{
+  0%{
+    opacity:1;
+    transform:translate(-50%,-50%) scale(.65);
+  }
+
+  100%{
+    opacity:0;
+    transform:translate(-50%,-50%) scale(1.15);
+  }
+}
+
+@keyframes message{
+  0%{
+    opacity:0;
+    top:4%;
+  }
+
+  18%,72%{
+    opacity:1;
+    top:7%;
+  }
+
+  100%{
+    opacity:0;
+    top:7%;
+  }
+}
+
+@media(max-width:600px){
+
+  #app{
+    padding:6px;
+  }
+
+  .hotspot{
+    width:9%;
+    height:11%;
+  }
+
+  .marker{
+    width:7%;
+  }
+
+  #side{
+    padding:9px;
+  }
+
+  .item{
+    font-size:12px;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<!-- スタート画面 -->
+<div id="start">
+
+  <div class="panel">
+
+    <h1>異常発見ゲーム</h1>
+
+    <p>
+      あなたは賃貸管理会社の担当者。<br>
+      物件をよく見て、
+      <strong>「おかしいところ」</strong>
+      を見つけてください。
+    </p>
+
+    <p>
+      正解をクリックすると、
+      <strong>実際にクリックした場所が丸で囲まれて残ります。</strong>
+      <br>
+      間違えると
+      <strong>30点減点</strong>
+      です。
+    </p>
+
+    <button class="main" onclick="startGame()">
+      GAME START
+    </button>
+
+    <div class="stageinfo">
+      STAGE 1：物件外観チェック
+      →
+      STAGE 2：退去立ち会いチェック
+    </div>
+
+  </div>
+
+</div>
+
+
+<div id="app">
+
+  <header>
+
+    <div class="title" id="stageTitle">
+      STAGE 1　物件外観チェック
+    </div>
+
+    <div class="stats">
+
+      <div class="badge">
+        SCORE
+        <span id="score">0</span>
+      </div>
+
+      <div class="badge">
+        発見
+        <span id="found">0</span>
+        /
+        <span id="total">8</span>
+      </div>
+
+      <div class="badge">
+        TIME
+        <span id="time">90</span>
+      </div>
+
+    </div>
+
+  </header>
+
+
+  <div id="game">
+
+    <img id="scene" alt="物件画像">
+
+    <div id="hotspots"></div>
+
+    <div id="markers"></div>
+
+    <div id="message"></div>
+
+  </div>
+
+
+  <div id="side">
+
+    <h2>発見すべき異常</h2>
+
+    <div id="items"></div>
+
+  </div>
+
+</div>
+
+
+<!-- 結果画面 -->
+<div id="result">
+
+  <div class="panel">
+
+    <h1 id="resultTitle">
+      STAGE CLEAR!
+    </h1>
+
+    <div class="scorebig" id="finalScore">
+      0 点
+    </div>
+
+    <p id="resultText"></p>
+
+    <button
+      class="main"
+      id="nextButton"
+      onclick="nextStage()">
+      STAGE 2へ
+    </button>
+
+  </div>
+
+</div>
+
+
+<script>
+
+/* =========================================
+   画像
+   ========================================= */
+
+/*
+  GitHubにアップするときは、
+
+  stage1.png
+  stage2.png
+
+  という名前で同じフォルダに画像を置く。
+*/
+
+const images = {
+  1: "stage1.png",
+  2: "stage2.png"
+};
+
+
+/* =========================================
+   STAGEデータ
+   ========================================= */
+
+const stages = {
+
+  /* ================================
+     STAGE 1
+     ================================ */
+
+  1: {
+
+    title:"STAGE 1　物件外観チェック",
+
+    time:90,
+
+    anomalies:[
+
+      {
+        id:1,
+        name:"外れてぶら下がった雨樋",
+        pts:100,
+        x:10.5,
+        y:20.1,
+        w:8,
+        h:12
+      },
+
+      {
+        id:2,
+        name:"2階廊下・階段の手すりに干された洗濯物",
+        pts:100,
+        x:41.5,
+        y:18.9,
+        w:11,
+        h:12
+      },
+
+      {
+        id:3,
+        name:"郵便受けからあふれた郵便物",
+        pts:100,
+        x:52,
+        y:58,
+        w:12,
+        h:14
+      },
+
+      {
+        id:4,
+        name:"外のコンセントから部屋の中への盗電",
+        pts:300,
+        x:82,
+        y:55,
+        w:10,
+        h:18
+      },
+
+      {
+        id:5,
+        name:"玄関まわりに勝手に置かれたプランター",
+        pts:100,
+        x:72,
+        y:75,
+        w:12,
+        h:13
+      },
+
+      {
+        id:6,
+        name:"ゴミ置き場の分別されていないゴミ・不法投棄",
+        pts:100,
+        x:9.2,
+        y:80.1,
+        w:13,
+        h:17
+      },
+
+      {
+        id:7,
+        name:"長期放置されたボロくて埃をかぶった自転車",
+        pts:100,
+        x:41.9,
+        y:79.3,
+        w:17,
+        h:17
+      },
+
+      {
+        id:8,
+        name:"ペット不可なのに猫と猫の餌が置いてある",
+        pts:200,
+        x:60,
+        y:85,
+        w:12,
+        h:13
+      }
+
+    ]
+  },
+
+
+  /* ================================
+     STAGE 2
+     ================================ */
+
+  2: {
+
+    title:"STAGE 2　退去立ち会いチェック",
+
+    time:120,
+
+    anomalies:[
+
+      {
+        id:1,
+        name:"壁の穴",
+        pts:300,
+        x:53.8,
+        y:55.8,
+        w:7,
+        h:10
+      },
+
+      {
+        id:2,
+        name:"タバコによるヤニ・焦げ跡",
+        pts:300,
+        x:59,
+        y:19,
+        w:10,
+        h:12
+      },
+
+      {
+        id:3,
+        name:"ドアの大きな破損",
+        pts:300,
+        x:68,
+        y:40,
+        w:12,
+        h:20
+      },
+
+      {
+        id:4,
+        name:"エアコンのリモコン紛失",
+        pts:300,
+        x:23.5,
+        y:34,
+        w:9,
+        h:12
+      },
+
+      {
+        id:5,
+        name:"壁の落書き",
+        pts:200,
+        x:54,
+        y:42,
+        w:14,
+        h:15
+      },
+
+      {
+        id:6,
+        name:"フローリングの深い傷",
+        pts:200,
+        x:35,
+        y:72,
+        w:22,
+        h:15
+      },
+
+      {
+        id:7,
+        name:"残置物",
+        pts:200,
+        x:75,
+        y:76,
+        w:18,
+        h:20
+      },
+
+      {
+        id:8,
+        name:"ペットによる引っ掻き傷",
+        pts:200,
+        x:89,
+        y:61,
+        w:8,
+        h:20
+      },
+
+      {
+        id:9,
+        name:"クローゼット扉の破損",
+        pts:200,
+        x:84,
+        y:37,
+        w:13,
+        h:22
+      },
+
+      {
+        id:10,
+        name:"窓ガラスのひび割れ（ガムテープ付き）",
+        pts:100,
+        x:9,
+        y:28,
+        w:12,
+        h:20
+      }
+
+    ]
+  }
+
+};
+
+
+/* =========================================
+   ゲーム状態
+   ========================================= */
+
+let stage = 1;
+let score = 0;
+let found = 0;
+let time = 90;
+
+let timer = null;
+let playing = false;
+
+
+/* =========================================
+   DOM
+   ========================================= */
+
+const scene =
+  document.getElementById("scene");
+
+const hotspots =
+  document.getElementById("hotspots");
+
+const markers =
+  document.getElementById("markers");
+
+const message =
+  document.getElementById("message");
+
+
+/* =========================================
+   現在のステージ
+   ========================================= */
+
+function current(){
+
+  return stages[stage];
+
+}
+
+
+/* =========================================
+   ゲーム開始
+   ========================================= */
+
+function startGame(){
+
+  document.getElementById("start")
+    .style.display="none";
+
+  loadStage(1);
+
+}
+
+
+/* =========================================
+   ステージ読み込み
+   ========================================= */
+
+function loadStage(n){
+
+  stage = n;
+
+  found = 0;
+
+  time = current().time;
+
+  playing = true;
+
+
+  document.getElementById("stageTitle")
+    .textContent=current().title;
+
+
+  document.getElementById("found")
+    .textContent="0";
+
+
+  document.getElementById("total")
+    .textContent=current().anomalies.length;
+
+
+  document.getElementById("time")
+    .textContent=time;
+
+
+  scene.src=images[stage];
+
+
+  hotspots.innerHTML="";
+
+  markers.innerHTML="";
+
+
+  renderList();
+
+  makeHotspots();
+
+
+  clearInterval(timer);
+
+  timer=setInterval(tick,1000);
+
+}
+
+
+/* =========================================
+   タイマー
+   ========================================= */
+
+function tick(){
+
+  if(!playing){
+    return;
+  }
+
+
+  time--;
+
+
+  document.getElementById("time")
+    .textContent=time;
+
+
+  if(time<=0){
+
+    endStage(false);
+
+  }
+
+}
+
+
+/* =========================================
+   異常リスト
+   ========================================= */
+
+function renderList(){
+
+  document.getElementById("items").innerHTML =
+
+    current().anomalies.map(a => `
+
+      <div class="item" id="item-${a.id}">
+
+        <span>
+
+          <span class="check">
+            ✓
+          </span>
+
+          ${a.name}
+
+        </span>
+
+        <span class="pts">
+          +${a.pts}
+        </span>
+
+      </div>
+
+    `).join("");
+
+}
+
+
+/* =========================================
+   クリック判定エリア
+   ========================================= */
+
+function makeHotspots(){
+
+  current().anomalies.forEach(a => {
+
+    const b =
+      document.createElement("button");
+
+    b.className="hotspot";
+
+
+    b.style.left=a.x+"%";
+    b.style.top=a.y+"%";
+
+    b.style.width=a.w+"%";
+    b.style.height=a.h+"%";
+
+
+    b.setAttribute(
+      "aria-label",
+      "異常を調べる"
+    );
+
+
+    b.onclick=function(e){
+
+      e.stopPropagation();
+
+
+      if(
+        !playing ||
+        b.dataset.done
+      ){
+        return;
+      }
+
+
+      /*
+        二重クリック防止
+      */
+
+      b.dataset.done="1";
+
+
+      const r =
+        scene.getBoundingClientRect();
+
+
+      /*
+        実際にクリックした場所に丸を置く
+      */
+
+      addMarker(
+        e.clientX-r.left,
+        e.clientY-r.top,
+        true
+      );
+
+
+      score += a.pts;
+
+      found++;
+
+
+      document.getElementById("score")
+        .textContent=score;
+
+
+      document.getElementById("found")
+        .textContent=found;
+
+
+      document
+        .getElementById("item-"+a.id)
+        .classList.add("found");
+
+
+      showMessage(
+        "発見！  +"+a.pts+"点"
+      );
+
+
+      /*
+        全部見つけた
+      */
+
+      if(
+        found ===
+        current().anomalies.length
+      ){
+
+        setTimeout(
+          () => endStage(true),
+          450
+        );
+
+      }
+
+    };
+
+
+    hotspots.appendChild(b);
+
+  });
+
+}
+
+
+/* =========================================
+   正解以外をクリック
+   ========================================= */
+
+scene.addEventListener(
+  "click",
+  function(e){
+
+    if(!playing){
+      return;
+    }
+
+
+    const r =
+      scene.getBoundingClientRect();
+
+
+    score -= 30;
+
+
+    document.getElementById("score")
+      .textContent=score;
+
+
+    addMarker(
+      e.clientX-r.left,
+      e.clientY-r.top,
+      false
+    );
+
+
+    showMessage(
+      "そこじゃない！  −30点"
+    );
+
+  }
+);
+
+
+/* =========================================
+   マーカー
+   ========================================= */
+
+function addMarker(
+  px,
+  py,
+  correct
+){
+
+  const r =
+    scene.getBoundingClientRect();
+
+
+  const m =
+    document.createElement("div");
+
+
+  /*
+    画像の大きさに対して
+    パーセント位置に変換
+  */
+
+  m.style.left =
+    (px/r.width*100)+"%";
+
+  m.style.top =
+    (py/r.height*100)+"%";
+
+
+  if(correct){
+
+    m.className="marker";
+
+    markers.appendChild(m);
+
+  }else{
+
+    m.className="wrong";
+
+    m.textContent="×";
+
+    markers.appendChild(m);
+
+
+    /*
+      0.5秒後に消える
+    */
+
+    setTimeout(
+      () => m.remove(),
+      500
+    );
+
+  }
+
+}
+
+
+/* =========================================
+   メッセージ
+   ========================================= */
+
+function showMessage(text){
+
+  message.textContent=text;
+
+  message.classList.remove("show");
+
+  void message.offsetWidth;
+
+  message.classList.add("show");
+
+}
+
+
+/* =========================================
+   ステージ終了
+   ========================================= */
+
+function endStage(clear){
+
+  if(!playing){
+    return;
+  }
+
+
+  playing=false;
+
+  clearInterval(timer);
+
+
+  document.getElementById("result")
+    .style.display="flex";
+
+
+  if(clear){
+
+    document.getElementById("resultTitle")
+      .textContent =
+      stage===1
+      ? "STAGE 1 CLEAR!"
+      : "GAME CLEAR!";
+
+
+    document.getElementById("resultText")
+      .textContent =
+
+      stage===1
+
+      ? "すべての異常を発見しました。次は退去立ち会いです。"
+
+      : "全ステージクリア！ あなたはかなり優秀な管理担当者です。";
+
+  }else{
+
+    document.getElementById("resultTitle")
+      .textContent="TIME UP";
+
+
+    document.getElementById("resultText")
+      .textContent =
+      `時間切れ。${found} / ${current().anomalies.length} 件を発見しました。`;
+
+  }
+
+
+  document.getElementById("finalScore")
+    .textContent=score+" 点";
+
+
+  const btn =
+    document.getElementById("nextButton");
+
+
+  if(stage===1 && clear){
+
+    btn.style.display="inline-block";
+
+    btn.textContent="STAGE 2へ";
+
+  }else{
+
+    btn.style.display="none";
+
+  }
+
+}
+
+
+/* =========================================
+   STAGE 2へ
+   ========================================= */
+
+function nextStage(){
+
+  document.getElementById("result")
+    .style.display="none";
+
+  loadStage(2);
+
+}
+
+</script>
+
+</body>
+</html>
