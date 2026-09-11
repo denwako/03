@@ -13,29 +13,20 @@ header{display:flex;align-items:center;justify-content:space-between;gap:8px;fle
 .title{font-size:clamp(18px,2.6vw,27px);font-weight:900}
 .stats{display:flex;gap:6px;flex-wrap:wrap}
 .badge{background:#242424;border:1px solid #444;border-radius:999px;padding:5px 10px;font-size:14px;font-weight:800}
-
 #game{position:relative;overflow:hidden;border-radius:12px;background:#000;box-shadow:0 8px 25px rgba(0,0,0,.45);line-height:0}
-#scene{display:block;width:100%;height:auto;user-select:none;-webkit-user-drag:none}
-#hotspots,#markers{position:absolute;inset:0}
-
-.hotspot{position:absolute;transform:translate(-50%,-50%);border:0;outline:0;background:transparent;padding:0;cursor:crosshair;z-index:3}
-.hotspot:focus,.hotspot:focus-visible{outline:none;box-shadow:none}
-
-.marker{position:absolute;transform:translate(-50%,-50%);width:5.5%;aspect-ratio:1;border:3px solid #28d66f;border-radius:50%;background:rgba(40,214,111,.10);z-index:8;pointer-events:none;animation:pop .2s ease-out}
+#scene{display:block;width:100%;height:auto;user-select:none;-webkit-user-drag:none;cursor:crosshair}
+#markers{position:absolute;inset:0;pointer-events:none}
+.marker{position:absolute;transform:translate(-50%,-50%);width:5.5%;aspect-ratio:1;border:3px solid #28d66f;border-radius:50%;background:rgba(40,214,111,.10);z-index:8;animation:pop .2s ease-out}
 .marker::after{content:"✓";position:absolute;inset:0;display:grid;place-items:center;font-size:clamp(16px,2vw,25px);font-weight:900;text-shadow:0 1px 3px #000}
-
-.wrong{position:absolute;transform:translate(-50%,-50%);z-index:9;color:#ff4d4d;font-size:clamp(36px,5.5vw,64px);font-weight:900;text-shadow:0 2px 5px #000;pointer-events:none;animation:wrong .5s ease-out forwards}
-
-#message{position:absolute;left:50%;top:6%;transform:translateX(-50%);z-index:12;background:rgba(0,0,0,.84);border:1px solid #555;border-radius:999px;padding:8px 16px;font-size:clamp(14px,1.8vw,21px);font-weight:900;white-space:nowrap;opacity:0;pointer-events:none}
+.wrong{position:absolute;transform:translate(-50%,-50%);z-index:9;color:#ff4d4d;font-size:clamp(36px,5.5vw,64px);font-weight:900;text-shadow:0 2px 5px #000;animation:wrong .5s ease-out forwards}
+#message{position:absolute;left:50%;top:6%;transform:translateX(-50%);z-index:12;background:rgba(0,0,0,.84);border:1px solid #555;border-radius:999px;padding:8px 16px;font-size:clamp(14px,1.8vw,21px);font-weight:900;white-space:nowrap;opacity:0;pointer-events:none;line-height:1.3}
 #message.show{animation:message .8s ease}
-
 #side{margin-top:6px;padding:8px 10px;background:#1b1b1b;border:1px solid #333;border-radius:12px}
 #side h2{margin:0 0 6px;font-size:15px}
 #items{display:flex;flex-wrap:wrap;gap:5px;min-height:22px}
 .item{display:flex;align-items:center;gap:7px;background:#17351f;border-radius:7px;padding:5px 8px;color:#fff;font-size:12px}
 .item .pts{font-weight:900;white-space:nowrap}
 #emptyMessage{color:#777;font-size:12px;padding:3px 0}
-
 #start,#result{position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.93);padding:16px}
 .panel{width:min(620px,100%);background:#202020;border:1px solid #444;border-radius:18px;padding:25px;text-align:center;box-shadow:0 18px 60px #000}
 .panel h1{margin:0 0 7px;font-size:clamp(28px,6vw,48px)}
@@ -47,11 +38,9 @@ header{display:flex;align-items:center;justify-content:space-between;gap:8px;fle
 .aptitude{font-size:clamp(30px,7vw,52px);font-weight:900;margin:8px 0}
 #result{display:none}
 #resultExtra{color:#ccc;line-height:1.7}
-
 @keyframes pop{from{transform:translate(-50%,-50%) scale(.55);opacity:.15}to{transform:translate(-50%,-50%) scale(1);opacity:1}}
 @keyframes wrong{0%{opacity:1;transform:translate(-50%,-50%) scale(.65)}100%{opacity:0;transform:translate(-50%,-50%) scale(1.15)}}
 @keyframes message{0%{opacity:0;top:3%}18%,72%{opacity:1;top:6%}100%{opacity:0;top:6%}}
-
 @media(max-width:600px){
   #app{padding:4px 5px 7px}
   .title{font-size:18px}
@@ -69,7 +58,7 @@ header{display:flex;align-items:center;justify-content:space-between;gap:8px;fle
   <div class="panel">
     <h1>異常発見ゲーム</h1>
     <p>あなたは賃貸管理会社の担当者。<br>物件をよく見て、<strong>「おかしいところ」</strong>を見つけてください。</p>
-    <p>あなたの<strong>賃貸管理人適性度を測ります</strong><br>間違えると<strong>減点</strong>です。</p>
+    <p>正解すると<strong>クリックした場所が緑の丸で残ります。</strong><br>間違えると<strong>5点減点</strong>です。</p>
     <button class="main" onclick="startGame()">GAME START</button>
     <div class="stageinfo">STAGE 1：物件外観チェック → STAGE 2：退去立ち会いチェック</div>
   </div>
@@ -87,7 +76,6 @@ header{display:flex;align-items:center;justify-content:space-between;gap:8px;fle
 
   <div id="game">
     <img id="scene" alt="物件画像">
-    <div id="hotspots"></div>
     <div id="markers"></div>
     <div id="message"></div>
   </div>
@@ -113,6 +101,13 @@ const images={
   2:"stage2.png"
 };
 
+/*
+  x,y = 判定中心
+  w,h = 判定範囲
+  すでに「約1.5倍」に広げた値。
+  実際のクリックはこの範囲内なら正解。
+*/
+
 const stages={
   1:{
     title:"STAGE 1　物件外観チェック",
@@ -128,20 +123,40 @@ const stages={
       {id:8,name:"ペット不可なのに猫と猫の餌が置いてある",pts:200,x:60,y:85,w:18,h:19.5}
     ]
   },
+
   2:{
     title:"STAGE 2　退去立ち会いチェック",
     time:120,
     anomalies:[
-      {id:1,name:"壁の穴",pts:300,x:54.7,y:56.0,w:11,h:16},
-      {id:2,name:"タバコによるヤニ・焦げ跡",pts:300,x:57.9,y:20.0,w:15,h:18},
-      {id:3,name:"ドアの大きな破損",pts:68.2,y:41.8,w:18,h:30},
-      {id:4,name:"エアコンのリモコン紛失",pts:300,x:23.4,y:35.0,w:13.5,h:18},
-      {id:5,name:"壁の落書き",pts:200,x:53.5,y:43.2,w:21,h:22.5},
-      {id:6,name:"フローリングの深い傷",pts:200,x:35.0,y:72.5,w:33,h:22.5},
-      {id:7,name:"残置物",pts:200,x:82.0,y:75.0,w:27,h:28},
-      {id:8,name:"ペットによる引っ掻き傷",pts:200,x:90.0,y:61.5,w:12,h:30},
-      {id:9,name:"クローゼット扉の破損",pts:86.0,y:53.0,w:20,h:33},
-      {id:10,name:"窓ガラスのひび割れ（ガムテープ付き）",pts:100,x:9.2,y:29.5,w:18,h:30}
+      /* ① 中央下の壁穴 */
+      {id:1,name:"壁の穴",pts:300,x:54.5,y:55.5,w:10,h:15},
+
+      /* ② エアコン下ではなく、上中央の焦げ跡 */
+      {id:2,name:"タバコによるヤニ・焦げ跡",pts:300,x:58.1,y:20.7,w:14,h:17},
+
+      /* ③ 中央右の大きなドア破損 */
+      {id:3,name:"ドアの大きな破損",pts:300,x:67.5,y:43.0,w:16,h:28},
+
+      /* ④ エアコン下・壁のリモコンホルダー */
+      {id:4,name:"エアコンのリモコン紛失",pts:300,x:23.3,y:35.2,w:12,h:17},
+
+      /* ⑤ 中央壁の落書き */
+      {id:5,name:"壁の落書き",pts:200,x:53.8,y:43.2,w:20,h:22},
+
+      /* ⑥ 床中央左の深い傷 */
+      {id:6,name:"フローリングの深い傷",pts:200,x:36.5,y:77.0,w:32,h:23},
+
+      /* ⑦ 右側の残置物一帯 */
+      {id:7,name:"残置物",pts:200,x:79.0,y:72.5,w:28,h:24},
+
+      /* ⑧ 右壁の引っ掻き傷 */
+      {id:8,name:"ペットによる引っ掻き傷",pts:200,x:95.0,y:60.0,w:10,h:25},
+
+      /* ⑨ 右端に立てかけられた破損クローゼット扉 */
+      {id:9,name:"クローゼット扉の破損",pts:200,x:86.5,y:43.5,w:18,h:32},
+
+      /* ⑩ 左窓のガムテープ付きひび */
+      {id:10,name:"窓ガラスのひび割れ（ガムテープ付き）",pts:100,x:12.0,y:28.5,w:17,h:29}
     ]
   }
 };
@@ -154,11 +169,12 @@ let timer=null;
 let playing=false;
 
 const scene=document.getElementById("scene");
-const hotspots=document.getElementById("hotspots");
 const markers=document.getElementById("markers");
 const message=document.getElementById("message");
 
-function current(){return stages[stage];}
+function current(){
+  return stages[stage];
+}
 
 const MAX_SCORE=Object.values(stages).reduce(
   (sum,s)=>sum+s.anomalies.reduce((a,b)=>a+b.pts,0),0
@@ -180,13 +196,14 @@ function loadStage(n){
   document.getElementById("total").textContent=current().anomalies.length;
   document.getElementById("time").textContent=time;
 
-  hotspots.innerHTML="";
   markers.innerHTML="";
   renderList();
 
+  /*
+    ステージ切替ごとに確実に画像を切り替える。
+    Date.now() はGitHub Pagesのキャッシュ対策。
+  */
   scene.src=images[stage]+"?v="+Date.now();
-
-  makeHotspots();
 
   clearInterval(timer);
   timer=setInterval(tick,1000);
@@ -204,78 +221,82 @@ function renderList(){
     '<div id="emptyMessage">まだありません</div>';
 }
 
-function makeHotspots(){
-  current().anomalies.forEach(function(a){
-    const b=document.createElement("button");
-    b.className="hotspot";
-    b.style.left=a.x+"%";
-    b.style.top=a.y+"%";
-    b.style.width=(a.w*1.5)+"%";
-    b.style.height=(a.h*1.5)+"%";
-
-    b.onclick=function(e){
-      e.stopPropagation();
-
-      if(!playing || b.dataset.done)return;
-
-      b.dataset.done="1";
-
-      const r=scene.getBoundingClientRect();
-
-      addMarker(
-        e.clientX-r.left,
-        e.clientY-r.top,
-        true
-      );
-
-      score+=a.pts;
-      found++;
-
-      document.getElementById("score").textContent=score;
-      document.getElementById("found").textContent=found;
-
-      const empty=document.getElementById("emptyMessage");
-      if(empty)empty.remove();
-
-      const item=document.createElement("div");
-      item.className="item";
-      item.innerHTML=
-        `<span>✓ ${a.name}</span><span class="pts">+${a.pts}</span>`;
-
-      document.getElementById("items").appendChild(item);
-
-      showMessage("発見！  +"+a.pts+"点");
-
-      if(found===current().anomalies.length){
-        setTimeout(()=>endStage(true),450);
-      }
-    };
-
-    hotspots.appendChild(b);
-  });
-}
-
 /*
-  重要：
-  クリック判定は「画像」ではなく「ゲーム全体」で受ける。
-  以前は #hotspots が画像の上を覆っていたため、
-  間違いクリックが scene に届かず減点されなかった。
+  重要な変更点：
+  透明なボタンを画像の上に置かない。
+  クリックをすべて scene 側で一度だけ判定する。
+  これで「間違えたのに減点されない」問題を防ぐ。
 */
-document.getElementById("game").addEventListener("click",function(e){
-  if(!playing)return;
+scene.addEventListener("click",function(e){
 
-  /* ボタン上のクリックは正解処理側に任せる */
-  if(e.target.closest(".hotspot"))return;
+  if(!playing)return;
 
   const r=scene.getBoundingClientRect();
 
-  if(
-    e.clientX<r.left ||
-    e.clientX>r.right ||
-    e.clientY<r.top ||
-    e.clientY>r.bottom
-  )return;
+  const x=(e.clientX-r.left)/r.width*100;
+  const y=(e.clientY-r.top)/r.height*100;
 
+  /*
+    クリック位置がどの異常の判定範囲に入っているか探す。
+    複数に重なった場合は中心に一番近いものを採用。
+  */
+  const candidates=current().anomalies.filter(a=>{
+    const halfW=a.w/2;
+    const halfH=a.h/2;
+    return (
+      x>=a.x-halfW &&
+      x<=a.x+halfW &&
+      y>=a.y-halfH &&
+      y<=a.y+halfH
+    );
+  });
+
+  let hit=null;
+
+  if(candidates.length){
+    candidates.sort((a,b)=>{
+      const da=Math.pow(x-a.x,2)+Math.pow(y-a.y,2);
+      const db=Math.pow(x-b.x,2)+Math.pow(y-b.y,2);
+      return da-db;
+    });
+    hit=candidates[0];
+  }
+
+  /* すでに発見済み */
+  if(hit && hit.found){
+    addMarker(e.clientX-r.left,e.clientY-r.top,true);
+    showMessage("発見済みです");
+    return;
+  }
+
+  /* 正解 */
+  if(hit){
+
+    hit.found=true;
+    score+=hit.pts;
+    found++;
+
+    document.getElementById("score").textContent=score;
+    document.getElementById("found").textContent=found;
+
+    addMarker(
+      e.clientX-r.left,
+      e.clientY-r.top,
+      true
+    );
+
+    addAnswer(hit);
+
+    showMessage("発見！  +"+hit.pts+"点");
+
+    if(found===current().anomalies.length){
+      setTimeout(()=>endStage(true),500);
+    }
+
+    return;
+  }
+
+  /* 不正解 */
   score-=5;
 
   document.getElementById("score").textContent=score;
@@ -289,7 +310,25 @@ document.getElementById("game").addEventListener("click",function(e){
   showMessage("そこじゃない！  −5点");
 });
 
+function addAnswer(a){
+
+  const empty=document.getElementById("emptyMessage");
+
+  if(empty)empty.remove();
+
+  const item=document.createElement("div");
+
+  item.className="item";
+
+  item.innerHTML=
+    `<span>✓ ${a.name}</span>
+     <span class="pts">+${a.pts}</span>`;
+
+  document.getElementById("items").appendChild(item);
+}
+
 function addMarker(px,py,correct){
+
   const r=scene.getBoundingClientRect();
   const m=document.createElement("div");
 
@@ -333,6 +372,7 @@ function aptitudeComment(n){
 }
 
 function endStage(clear){
+
   if(!playing)return;
 
   playing=false;
@@ -353,6 +393,7 @@ function endStage(clear){
 
     btn.style.display="inline-block";
     btn.textContent="STAGE 2へ";
+    btn.onclick=nextStage;
 
   }else if(stage===2){
 
@@ -373,7 +414,7 @@ function endStage(clear){
 
     btn.style.display="inline-block";
     btn.textContent="もう一度プレイ";
-    btn.onclick=function(){location.reload();};
+    btn.onclick=()=>location.reload();
 
   }else{
 
@@ -387,13 +428,12 @@ function endStage(clear){
 
     btn.style.display="inline-block";
     btn.textContent="もう一度プレイ";
-    btn.onclick=function(){location.reload();};
+    btn.onclick=()=>location.reload();
   }
 }
 
 function nextStage(){
   document.getElementById("result").style.display="none";
-  document.getElementById("nextButton").onclick=nextStage;
   loadStage(2);
 }
 </script>
