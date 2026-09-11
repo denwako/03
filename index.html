@@ -35,7 +35,7 @@ header{display:flex;align-items:center;justify-content:space-between;gap:8px;fle
 .main{border:0;border-radius:11px;background:#fff;color:#111;padding:12px 23px;font-size:17px;font-weight:900;cursor:pointer}
 .stageinfo{margin-top:9px;color:#999;font-size:13px}
 .scorebig{margin:7px;font-size:clamp(44px,9vw,66px);font-weight:900}
-.aptitude{font-size:clamp(30px,7vw,52px);font-weight:900;margin:8px 0}
+.aptitude{font-size:clamp(24px,5vw,40px);font-weight:900;margin:10px 0}
 #result{display:none}
 #resultExtra{color:#ccc;line-height:1.7}
 @keyframes pop{from{transform:translate(-50%,-50%) scale(.55);opacity:.15}to{transform:translate(-50%,-50%) scale(1);opacity:1}}
@@ -57,10 +57,10 @@ header{display:flex;align-items:center;justify-content:space-between;gap:8px;fle
 <div id="start">
   <div class="panel">
     <h1>異常発見ゲーム</h1>
-    <p>あなたは賃貸管理会社の担当者。<br>物件をよく見て、<strong>「おかしいところ」</strong>を見つけてください。</p>
-    <p>正解すると<strong>クリックした場所が緑の丸で残ります。</strong><br>間違えると<strong>5点減点</strong>です。</p>
+    <p>あなたは賃貸管理会社の担当者。<br>物件をよく見て、<strong>「これ、管理会社的には見逃せないな」</strong>を見つけてください。</p>
+    <p>正解すると<strong>クリックした場所が緑の丸で残ります。</strong><br>間違えると減点されます。</p>
     <button class="main" onclick="startGame()">GAME START</button>
-    <div class="stageinfo">STAGE 1：物件外観チェック → STAGE 2：退去立ち会いチェック</div>
+    <div class="stageinfo"></div>
   </div>
 </div>
 
@@ -353,22 +353,23 @@ function showMessage(text){
   message.classList.add("show");
 }
 
-function aptitudeScore(){
-  return Math.max(
-    0,
-    Math.min(
-      100,
-      Math.round((score/MAX_SCORE)*100)
-    )
-  );
-}
+function aptitudeComment(){
+  const max=MAX_SCORE;
+  const ratio=score/max;
 
-function aptitudeComment(n){
-  if(n>=90)return"かなり高い適性。異常への気づきも判断力も優秀です。";
-  if(n>=75)return"十分に適性あり。実務でも頼れる管理担当者です。";
-  if(n>=60)return"まずまずの適性。慎重さを身につければかなり強いです。";
-  if(n>=40)return"もう一歩。見落としを減らすと管理力が伸びます。";
-  return"まだまだ修行中。物件をもっと疑って見ましょう。";
+  if(ratio>=0.90)
+    return "かなり向いてます。物件を見た瞬間に「なんか怪しい」が働くタイプ。管理会社では頼りにされる人です。";
+
+  if(ratio>=0.75)
+    return "なかなかの管理会社適性。異常にも気づくし、ちゃんと疑う。入居者さんの言い訳にも負けなさそうです。";
+
+  if(ratio>=0.60)
+    return "管理人見習いとしては優秀。あと一歩の慎重さがあれば、退去立ち会いで強そうです。";
+
+  if(ratio>=0.40)
+    return "悪くない。でも物件はもう少し疑って見たほうがいいかも。「たぶん大丈夫」は賃貸管理ではだいたい危険です。";
+
+  return "まだまだ修行中。賃貸管理の世界では、玄関を開けた瞬間から何か起きていると思ったほうがいいです。";
 }
 
 function endStage(clear){
@@ -397,8 +398,6 @@ function endStage(clear){
 
   }else if(stage===2){
 
-    const suitability=aptitudeScore();
-
     document.getElementById("resultTitle").textContent=
       clear ? "GAME CLEAR!" : "GAME END";
 
@@ -406,11 +405,8 @@ function endStage(clear){
       score+" 点";
 
     extra.innerHTML=
-      `<div class="aptitude">賃貸管理人適性：${suitability}点 / 100点</div>
-       <div>${aptitudeComment(suitability)}</div>
-       <div style="margin-top:8px;font-size:13px;color:#999;">
-         総合点 ${score} / ${MAX_SCORE}点
-       </div>`;
+      `<div class="aptitude">あなたの賃貸管理人適性</div>
+       <div>${aptitudeComment()}</div>`;
 
     btn.style.display="inline-block";
     btn.textContent="もう一度プレイ";
